@@ -8,6 +8,8 @@ let newSlate = true;
 let counting = false;
 let timerCount = 2;
 let timerCountDown = 2;
+let mouseDown = false;
+let mouseHold, mouseDownCount;
 
 const tCountPlus = document.querySelector('#timer-count-plus');
 const tCount = document.querySelector('#timer-count');
@@ -108,7 +110,10 @@ const chevronActions = {
     } else {
         sessionLength ++;
         sessionHourMinSec.min ++;
-        screenUpdate('session')
+        screenUpdate('session');
+        if (targetBtn) {
+            mouseHoldClicks(targetBtn);
+        }
     }
     },
     'session-down'(targetBtn) {
@@ -117,7 +122,10 @@ const chevronActions = {
     } else {
         sessionLength --;
         sessionHourMinSec.min --;
-        screenUpdate('session')
+        screenUpdate('session');
+        if (targetBtn) {
+            mouseHoldClicks(targetBtn);
+        }
     }
     },
     'break-up'(targetBtn) {
@@ -126,7 +134,10 @@ const chevronActions = {
     } else {
         breakLength ++;
         breakHourMinSec.min ++;
-        screenUpdate('break')
+        screenUpdate('break');
+        if (targetBtn) {
+            mouseHoldClicks(targetBtn);
+        }
     }
     },
     'break-down'(targetBtn) {
@@ -135,20 +146,38 @@ const chevronActions = {
     } else {
         breakLength --;
         breakHourMinSec.min --;
-        screenUpdate('break')
+        screenUpdate('break');
+        if (targetBtn) {
+            mouseHoldClicks(targetBtn);
+        }
     }
     }
 }
 
+function mouseHoldClicks(eTarget) {
+    mouseDownCount = setTimeout(function(){
+        if (mouseDown) {
+            mouseHold = setInterval(function() {
+                chevronActions[eTarget.id]('');
+            },140)
+        }
+    },550)
+}
+
 chevronArr.map(chevron => {chevron.addEventListener('mousedown', function(e) {
+    mouseDown = true;
     chevronActions[e.target.id](e.target);
 })})
 chevronArr.map(chevron => {chevron.addEventListener('mouseup', function(e) {
-
+    mouseDown = false;
+    clearTimeout(mouseDownCount);
+    clearInterval(mouseHold);
 })})
 
 chevronArr.map(chevron => {chevron.addEventListener('mouseout', function(e) {
-
+    mouseDown = false;
+    clearTimeout(mouseDownCount);
+    clearInterval(mouseHold);
 })})
 
 
@@ -166,51 +195,67 @@ function resetTimers(timer) {
     }
 }
 
+function chickenAlarm() {
+    var audio = new Audio('./audio/chicken.wav');
+    audio.loop = false;
+    audio.play();
+}
+
+function bellAlarm() {
+    var audio = new Audio('./audio/bell.wav');
+    audio.loop = false;
+    audio.play();
+}
+
 function countDown () {
     if (sessionOrBreak === "session") {
-    cDown = setInterval(function(){
+        cDown = setInterval(function(){
         if (sessionHourMinSec.hour || sessionHourMinSec.min || sessionHourMinSec.sec) {
-        sessionHourMinSec.sec --;
-        screenUpdate('timer');
+            sessionHourMinSec.sec --;
+            screenUpdate('timer');
         } else {
-        clearInterval(cDown);
-        timerCountDown--;
-        screenUpdate('tCount');
-        counting = false;
-        sessionOrBreak = 'break';
-        onlySession.classList.add('inactive-cycle');
-        onlyBreak.classList.remove('inactive-cycle');
-        resetTimers('session')
-        if (timerCountDown) {
-            controlActions['start']();
-        } else {
-            setTimeout(function(){
-                controlActions['stop']();
+            chickenAlarm();
+            clearInterval(cDown);
+            timerCountDown--;
+            screenUpdate('tCount');
+            counting = false;
+            sessionOrBreak = 'break';
+            document.body.classList.add('chicks-background');
+            onlySession.classList.add('inactive-cycle');
+            onlyBreak.classList.remove('inactive-cycle');
+            resetTimers('session')
+            if (timerCountDown) {
+                controlActions['start']();
+            } else {
+                setTimeout(function(){
+                    controlActions['stop']();
             },2000)
         }
         }
     }, 1000)
     } else if (sessionOrBreak === 'break') {
-    cDown = setInterval(function(){
+        cDown = setInterval(function(){
         if (breakHourMinSec.hour || breakHourMinSec.min || breakHourMinSec.sec) {
-        breakHourMinSec.sec --;
-        screenUpdate('timer');
+            breakHourMinSec.sec --;
+            screenUpdate('timer');
         } else {
-        clearInterval(cDown);
-        timerCountDown--;
-        screenUpdate('tCount');
-        counting = false;
-        sessionOrBreak = 'session';
-        onlyBreak.classList.add('inactive-cycle');
-        onlySession.classList.remove('inactive-cycle');
-        resetTimers('session')
-        if (timerCountDown) {
-            controlActions['start']();
-        } else {
-            setTimeout(function(){
-                controlActions['stop']();
-            },2000)
-        }
+            bellAlarm();
+            clearInterval(cDown);
+            timerCountDown--;
+            screenUpdate('tCount');
+            counting = false;
+            sessionOrBreak = 'session';
+            document.body.classList.remove('chicks-background');
+            onlyBreak.classList.add('inactive-cycle');
+            onlySession.classList.remove('inactive-cycle');
+            resetTimers('session')
+            if (timerCountDown) {
+                controlActions['start']();
+            } else {
+                setTimeout(function(){
+                    controlActions['stop']();
+                },2000)
+            }
         }
     }, 1000)
     }
@@ -269,24 +314,49 @@ controlsArr.map(control => {control.addEventListener('click', function(e) {
     controlActions[e.target.id]();
 })})
 
+function cycleFocus() {
+    if (sessionOrBreak === 'session') {
+        onlySession.classList.add('focused-cycle');
+        onlyBreak.classList.remove('focused-cycle');
+    } else {
+        onlyBreak.classList.add('focused-cycle');
+        onlySession.classList.remove('focused-cycle');
+    }
+}
 function changeCycle(target) {
     if (newSlate){
-    onlyBreak.classList.toggle('inactive-cycle');
-    onlySession.classList.toggle('inactive-cycle');
-    if (sessionOrBreak === 'session'){
-        sessionOrBreak = 'break';
-        breakFirst = true;
-        screenUpdate('break');
-    } else {
-        breakFirst = false;
-        sessionOrBreak = 'session';
-        screenUpdate('session');
-    }
+        onlyBreak.classList.toggle('inactive-cycle');
+        onlySession.classList.toggle('inactive-cycle');
+        if (sessionOrBreak === 'session'){
+            sessionOrBreak = 'break';
+            breakFirst = true;
+            document.body.classList.add('chicks-background');
+            screenUpdate('break');
+        } else {
+            breakFirst = false;
+            sessionOrBreak = 'session';
+            document.body.classList.remove('chicks-background');
+            screenUpdate('session');
+        }
+    cycleFocus();
     }
 }
 
+
 cycleDisplay.addEventListener('click', function(e) {
     changeCycle(e.target)
+});
+
+cycleDisplay.addEventListener('mouseenter', function() {
+    cycleFocus();
+});
+
+cycleDisplay.addEventListener('mouseleave', function() {
+    if (sessionOrBreak === 'session') {
+        onlySession.classList.remove('focused-cycle');
+    } else {
+        onlyBreak.classList.remove('focused-cycle');
+    }
 });
 
 tCountPlus.addEventListener('click', function(){

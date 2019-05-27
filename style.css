@@ -5,6 +5,23 @@
   box-sizing: border-box;
 }
 
+body {
+  transition: background-image 0.1s ease-in-out;
+}
+.chicken-background {
+  background-image: url("./images/chicken.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.chicks-background {
+  background-image: url("./images/chicks.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .numbers {
   font-family: 'Marvel', sans-serif;
 }
@@ -13,13 +30,17 @@ body {
   background: gray;
 }
 
+header {
+  height: 5vh;
+}
+
 #timer-container {
   width: 360px;
   height: 450px;
-  margin: 0 auto;
   background: white;
   opacity: .75;
   border-radius: 48%;
+  margin: 0 auto;
 }
 
 #guts-container {
@@ -83,9 +104,13 @@ body {
 
 .cycles {
   margin: 2px 0;
-  font-size: 1.6em;
+  font-size: 1.5em;
   transition: .5s;
   overflow: hidden;
+}
+
+.focused-cycle {
+  font-size: 1.6em;
 }
 
 .inactive-cycle {
@@ -93,7 +118,6 @@ body {
   color: gray;
   opacity: .5;
 }
-
 
 .remove-first-break {
   height: 0;
